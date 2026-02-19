@@ -1,15 +1,15 @@
-import express from "express";
+import { io } from "socket.io-client";
 import "dotenv/config";
 import { promises as fs } from "node:fs";
 import { RawDataSchema, type RawData } from "./schema.js";
 import { encryptAES, sha256 } from "./crypto.js";
 
-const app = express();
-
-const PORT = process.env.PORT;
-if (!PORT) {
-  throw new Error("PORT environment variable is not defined");
+const LISTENER_URL = process.env.LISTENER_URL;
+if (!LISTENER_URL) {
+  throw new Error("LISTENER_URL environment variable is not defined");
 }
+
+const socket = io(LISTENER_URL);
 
 async function loadRawData(): Promise<RawData> {
   console.log("Loading raw data from file");
@@ -80,7 +80,7 @@ function emitEncryptedStream(rawData: RawData) {
   setInterval(()=> {
     const encryptedStream = generateEncryptedStream(rawData);
     console.log("Encrypted data stream generated successfully");
-    console.log(encryptedStream);
+    socket.emit("data-stream", encryptedStream);
 
   }, EMISSION_TIME_INTERVAL);
 }
@@ -96,7 +96,7 @@ async function initiateDataEmission() {
   }
 }
 
-app.listen(PORT, () => {
-  console.log(`Emitter service is running on port ${PORT}`);
+socket.on("connect", () => {
+  console.log("Connected to listener");
   initiateDataEmission();
 });
