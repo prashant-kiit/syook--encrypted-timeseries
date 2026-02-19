@@ -13,8 +13,10 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bullmq": "^5.69.3",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "ioredis": "^5.9.3",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {

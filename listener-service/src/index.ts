@@ -3,6 +3,7 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import "dotenv/config";
+import { messageQueue } from "./queue.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -23,8 +24,16 @@ app.get("/", (_, res) => {
 io.on("connection", (socket) => {
   console.log("Emitter connected:", socket.id);
 
-  socket.on("data-stream", (payload: string) => {
+  socket.on("data-stream", async (payload: string) => {
     console.log("Received stream:", payload);
+    const encryptedDataArray = payload.split("|");
+
+    await messageQueue.addBulk(
+      encryptedDataArray.map((encryptedData) => ({
+        name: "process-message",
+        data: { encryptedData },
+      })),
+    );
   });
 
   socket.on("disconnect", () => {
