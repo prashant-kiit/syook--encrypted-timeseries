@@ -4,6 +4,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import "dotenv/config";
 import { messageQueue } from "./queue.js";
+import startWorker from "./worker.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -40,6 +41,8 @@ io.on("connection", (socket) => {
     console.log("Emitter disconnected");
   });
 });
+
+startWorker();
 
 httpServer.listen(LISTENER_PORT, () => {
   console.log(`Listener running on port ${LISTENER_PORT}`);
