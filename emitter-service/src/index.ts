@@ -48,15 +48,49 @@ function getEncryptedData(rawData: RawData): string {
   return encryptedMessage;
 }
 
+function randomCount() {
+  return Math.floor(Math.random() * (499 - 49 + 1)) + 49;
+}
+
+function generateEncryptedStream(rawData: RawData) {
+  console.log("Generating encrypted data stream");
+  const messages: string[] = [];
+  const count = randomCount();
+  for (let i = 0; i < count; i++) {
+    const encryptedData = getEncryptedData(rawData);
+    messages.push(encryptedData);
+  }
+  return messages.join("|");
+}
+
+function getEmissionTimeInterval(): number {
+  const EMISSION_TIME_INTERVAL_STRING = process.env.EMISSION_TIME_INTERVAL;
+  if (!EMISSION_TIME_INTERVAL_STRING) {
+    throw new Error("EMISSION_TIME_INTERVAL environment variable is not defined");
+  }
+  const EMISSION_TIME_INTERVAL = Number(EMISSION_TIME_INTERVAL_STRING);
+
+  return EMISSION_TIME_INTERVAL;
+}
+
+function emitEncryptedStream(rawData: RawData) {
+  console.log("Emitting encrypted data stream");
+
+  const EMISSION_TIME_INTERVAL = getEmissionTimeInterval();
+  setInterval(()=> {
+    const encryptedStream = generateEncryptedStream(rawData);
+    console.log("Encrypted data stream generated successfully");
+    console.log(encryptedStream);
+
+  }, EMISSION_TIME_INTERVAL);
+}
+
 async function initiateDataEmission() {
   console.log("Data emission initiated");
   try {
     const rawData = await loadRawData();
-    for (let i = 0; i < 5; i++) {
-      const encryptedData = getEncryptedData(rawData);
-      console.log(`Emitting encrypted data: ${encryptedData}`);
-    }
     console.log("Raw data loaded successfully");
+    emitEncryptedStream(rawData);
   } catch (error) {
     console.error("Error during data emission:", error);
   }
