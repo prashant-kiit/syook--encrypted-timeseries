@@ -72,8 +72,9 @@ const workerCallback = async (job: any) => {
 };
 
 async function shutdown(worker: Worker) {
-  console.log("Closing worker...");
-  await worker.close(); // waits for current job to finish
+  console.log("Closing worker and MongoDB connection...");
+  await worker.close();
+  await mongoose.connection.close();
   process.exit(0);
 }
 
