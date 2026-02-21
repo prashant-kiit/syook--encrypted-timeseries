@@ -17,29 +17,34 @@ const messageQueue = new Queue("message-stream", {
 });
 
 function startQueue(httpServer: any) {
-  const io = new Server(httpServer, {
-    cors: { origin: "*" },
-  });
+  try {
 
-  io.on("connection", (socket) => {
-    console.log("Emitter connected:", socket.id);
-
-    socket.on("data-stream", async (payload: string) => {
-      console.log("Received stream");
-      const encryptedDataArray = payload.split("|");
-
-      await messageQueue.addBulk(
-        encryptedDataArray.map((encryptedData) => ({
-          name: "process-message",
-          data: { encryptedData },
-        })),
-      );
+    const io = new Server(httpServer, {
+      cors: { origin: "*" },
     });
-
-    socket.on("disconnect", () => {
-      console.log("Emitter disconnected");
+    
+    io.on("connection", (socket) => {
+      console.log("Emitter connected:", socket.id);
+      
+      socket.on("data-stream", async (payload: string) => {
+        console.log("Received stream");
+        const encryptedDataArray = payload.split("|");
+        
+        await messageQueue.addBulk(
+          encryptedDataArray.map((encryptedData) => ({
+            name: "process-message",
+            data: { encryptedData },
+          })),
+        );
+      });
+      
+      socket.on("disconnect", () => {
+        console.log("Emitter disconnected");
+      });
     });
-  });
+  } catch(err) {
+    console.log("Start Queue failed due to error", err);
+  }
 }
 
 export default startQueue;
