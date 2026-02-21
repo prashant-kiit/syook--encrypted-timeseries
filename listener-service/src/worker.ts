@@ -1,6 +1,6 @@
 import { Worker } from "bullmq";
 import mongoose from "mongoose";
-import { connection } from "./queue.js";
+import { redisConnection, mongoConnection } from "./connections.js";
 import { decryptAES, sha256 } from "./crypto.js";
 import { MessageSchema, type Message, type DecryptedData } from "./schema.js";
 import { MessageModel } from "./model.js";
@@ -82,22 +82,18 @@ function startWorker() {
   try {
     console.log("Worker started...");
 
-    const MONGO_URI = process.env.MONGO_URI;
-    if (!MONGO_URI) {
-      throw new Error("MONGO_URI environment variable is not defined");
-    }
-    mongoose.connect(MONGO_URI);
+    mongoose.connect(mongoConnection.uri);
     console.log("Connected to MongoDB");
 
     const worker = new Worker("message-stream", workerCallback, {
-      connection,
+      connection: redisConnection,
       concurrency: 20,
     });
+    console.log("Worker is listening to the message-stream queue");
 
     process.on("SIGINT", () => shutdown(worker));
     process.on("SIGTERM", () => shutdown(worker));
 
-    console.log("Worker is listening to the message-stream queue");
   } catch (err) {
     console.error("Worker failed to start:", err);
   }

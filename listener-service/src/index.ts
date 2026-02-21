@@ -3,7 +3,7 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import "dotenv/config";
-import { messageQueue } from "./queue.js";
+import { messageQueue } from "./connections.js";
 import startWorker from "./worker.js";
 
 const app = express();
