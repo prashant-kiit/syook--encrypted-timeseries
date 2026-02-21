@@ -18,10 +18,6 @@ const io = new Server(httpServer, {
   cors: { origin: "*" },
 });
 
-app.get("/", (_, res) => {
-  res.send("Listener service running");
-});
-
 io.on("connection", (socket) => {
   console.log("Emitter connected:", socket.id);
 
