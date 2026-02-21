@@ -5,6 +5,7 @@ const RecordSchema = new mongoose.Schema(
     name: String,
     origin: String,
     destination: String,
+    isSuccess: Boolean,
     receivedAt: Date,
   },
   { _id: false }

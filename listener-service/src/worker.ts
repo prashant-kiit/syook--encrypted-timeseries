@@ -26,18 +26,18 @@ function validateJobDataSchema(jobData: { encryptedData: string }): Message {
 
 function isDecryptedDataValid(decryptedDataJSON: Message): {
   success: boolean;
-  decryptedData?: DecryptedData;
+  decryptedData: DecryptedData;
 } {
   console.log("Verifying decrypted data");
   const { secret_key, ...original } = decryptedDataJSON;
 
   if (sha256(original) !== secret_key) {
-    return { success: false };
+    return { success: false, decryptedData: original };
   }
   return { success: true, decryptedData: original };
 }
 
-async function storeDataInDB(decryptedData?: DecryptedData) {
+async function storeDataInDB(success: boolean, decryptedData: DecryptedData) {
   console.log("Storing data in DB");
   const receivedAt = new Date();
   const minuteBucket = getMinuteBucket(receivedAt);
@@ -46,7 +46,7 @@ async function storeDataInDB(decryptedData?: DecryptedData) {
     { minuteBucket },
     {
       $push: {
-        records: { ...decryptedData, receivedAt },
+        records: { ...decryptedData, isSuccess: success, receivedAt },
       },
     },
     { upsert: true },
@@ -60,15 +60,10 @@ const workerCallback = async (job: any) => {
     console.log("Job data validated successfully");
 
     const isValid = isDecryptedDataValid(decryptedDataJSON);
-    if (!isValid.success) {
-      console.warn(
-        "Job data failed integrity check, skipping database insertion",
-      );
-      return;
-    }
+
     console.log("Job data integrity verified successfully");
 
-    await storeDataInDB(isValid.decryptedData);
+    await storeDataInDB(isValid.success, isValid.decryptedData);
     console.log("Job completed successfully");
   } catch (err) {
     console.error("Job failed:", err);
@@ -80,18 +75,18 @@ function startWorker() {
   try {
     console.log("Worker started...");
 
-  const MONGO_URI = process.env.MONGO_URI;
-  if (!MONGO_URI) {
-    throw new Error("MONGO_URI environment variable is not defined");
-  }
-  mongoose.connect(MONGO_URI);
-  console.log("Connected to MongoDB");
+    const MONGO_URI = process.env.MONGO_URI;
+    if (!MONGO_URI) {
+      throw new Error("MONGO_URI environment variable is not defined");
+    }
+    mongoose.connect(MONGO_URI);
+    console.log("Connected to MongoDB");
 
-  new Worker("message-stream", workerCallback, {
-    connection,
-    concurrency: 20,
-  });
-  console.log("Worker is listening to the message-stream queue");
+    new Worker("message-stream", workerCallback, {
+      connection,
+      concurrency: 20,
+    });
+    console.log("Worker is listening to the message-stream queue");
   } catch (err) {
     console.error("Worker failed to start:", err);
   }
