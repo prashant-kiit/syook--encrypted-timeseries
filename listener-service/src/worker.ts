@@ -71,6 +71,12 @@ const workerCallback = async (job: any) => {
   }
 };
 
+async function shutdown(worker: Worker) {
+  console.log("Closing worker...");
+  await worker.close(); // waits for current job to finish
+  process.exit(0);
+}
+
 function startWorker() {
   try {
     console.log("Worker started...");
@@ -82,10 +88,14 @@ function startWorker() {
     mongoose.connect(MONGO_URI);
     console.log("Connected to MongoDB");
 
-    new Worker("message-stream", workerCallback, {
+    const worker = new Worker("message-stream", workerCallback, {
       connection,
       concurrency: 20,
     });
+
+    process.on("SIGINT", () => shutdown(worker));
+    process.on("SIGTERM", () => shutdown(worker));
+
     console.log("Worker is listening to the message-stream queue");
   } catch (err) {
     console.error("Worker failed to start:", err);
