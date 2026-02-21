@@ -77,7 +77,8 @@ const workerCallback = async (job: any) => {
 };
 
 function startWorker() {
-  console.log("Worker started...");
+  try {
+    console.log("Worker started...");
 
   const MONGO_URI = process.env.MONGO_URI;
   if (!MONGO_URI) {
@@ -91,6 +92,9 @@ function startWorker() {
     concurrency: 20,
   });
   console.log("Worker is listening to the message-stream queue");
+  } catch (err) {
+    console.error("Worker failed to start:", err);
+  }
 }
 
 export default startWorker;

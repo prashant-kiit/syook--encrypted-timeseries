@@ -38,7 +38,7 @@ io.on("connection", (socket) => {
   });
 });
 
-startWorker();
+startWorker()
 
 httpServer.listen(LISTENER_PORT, () => {
   console.log(`Listener running on port ${LISTENER_PORT}`);

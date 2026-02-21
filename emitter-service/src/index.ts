@@ -96,6 +96,8 @@ async function initiateDataEmission() {
   }
 }
 
+console.log("Emitter service socket client is waiting for connection");
+
 socket.on("connect", () => {
   console.log("Connected to listener");
   initiateDataEmission();
