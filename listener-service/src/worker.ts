@@ -1,6 +1,6 @@
 import { Worker } from "bullmq";
 import mongoose from "mongoose";
-import { redisConnection, mongoConnection } from "./connections.js";
+import { redisConnection } from "./queue.js";
 import { decryptAES, sha256 } from "./crypto.js";
 import { MessageSchema, type Message, type DecryptedData } from "./schema.js";
 import { MessageModel } from "./model.js";
@@ -74,17 +74,11 @@ const workerCallback = async (job: any) => {
 async function shutdown(worker: Worker) {
   console.log("Closing worker and MongoDB connection...");
   await worker.close();
-  await mongoose.connection.close();
   process.exit(0);
 }
 
 function startWorker() {
   try {
-    console.log("Worker started...");
-
-    mongoose.connect(mongoConnection.uri);
-    console.log("Connected to MongoDB");
-
     const worker = new Worker("message-stream", workerCallback, {
       connection: redisConnection,
       concurrency: 20,
@@ -93,7 +87,6 @@ function startWorker() {
 
     process.on("SIGINT", () => shutdown(worker));
     process.on("SIGTERM", () => shutdown(worker));
-
   } catch (err) {
     console.error("Worker failed to start:", err);
   }

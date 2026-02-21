@@ -1,5 +1,4 @@
 services:
-
   emitter-service:
     image: emitter-service:latest
     container_name: emitter-service
@@ -35,7 +34,7 @@ services:
   mongodb:
     image: mongo:7
     container_name: mongodb-service
-    restart: always
+    command: mongod --replSet rs0 --bind_ip_all --keyFile /etc/mongo-keyfile
     ports:
       - "27017:27017"
     environment:
@@ -44,6 +43,18 @@ services:
       MONGO_INITDB_DATABASE: listener_db
     volumes:
       - mongo_data:/data/db
+      - ./mongo-keyfile:/etc/mongo-keyfile:ro
+    networks:
+      - encryption-app-network
+
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      - mongodb
+    entrypoint: >
+      bash -c "sleep 5 &&
+      mongosh mongodb://admin:admin123@mongodb-service:27017/admin?authSource=admin --eval
+      'rs.initiate({_id:\"rs0\",members:[{_id:0,host:\"mongodb-service:27017\"}]})'"
     networks:
       - encryption-app-network
 

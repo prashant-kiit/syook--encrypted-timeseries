@@ -24,3 +24,23 @@ export const MessageModel = mongoose.model(
   TimeSeriesSchema,
   "message_timeseries"
 );
+
+const RollingWindowResultSchema = new mongoose.Schema(
+  {
+    windowStart: { type: Date, required: true, unique: true },
+    windowEnd: Date,
+    totalRecords: Number,
+    successCount: Number,
+    failCount: Number,
+    bucketsCovered: Number,
+    successRate: Number,
+    computedAt: Date,
+  },
+  { versionKey: false }
+);
+
+export const RollingWindowResultModel = mongoose.model(
+  "rolling_window_results",
+  RollingWindowResultSchema,
+  "rolling_window_results"
+);
