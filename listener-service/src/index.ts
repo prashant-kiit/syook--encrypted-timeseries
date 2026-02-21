@@ -26,7 +26,7 @@ io.on("connection", (socket) => {
   console.log("Emitter connected:", socket.id);
 
   socket.on("data-stream", async (payload: string) => {
-    console.log("Received stream:", payload);
+    console.log("Received stream");
     const encryptedDataArray = payload.split("|");
 
     await messageQueue.addBulk(

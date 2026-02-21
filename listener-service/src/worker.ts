@@ -67,7 +67,6 @@ const workerCallback = async (job: any) => {
       return;
     }
     console.log("Job data integrity verified successfully");
-    console.log("Decrypted data:", isValid.decryptedData);
 
     await storeDataInDB(isValid.decryptedData);
     console.log("Job completed successfully");
