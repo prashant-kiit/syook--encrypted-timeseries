@@ -13,7 +13,7 @@ if (!LISTENER_PORT) {
 }
 
 connectMongoDB();
-startStreamer(httpServer);
+startStreamer(httpServer); // TODO: Make it Reactive (No Polling)
 
 httpServer.listen(LISTENER_PORT, () => {
   console.log(`Dashboard Backedn running on port ${LISTENER_PORT}`);

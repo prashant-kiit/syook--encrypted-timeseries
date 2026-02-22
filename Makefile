@@ -1,4 +1,5 @@
 KEYFILE=mongo-keyfile
+
 mongo-keyfile:
 	@if [ ! -f $(KEYFILE) ]; then \
 		echo "Generating mongo keyfile..."; \
