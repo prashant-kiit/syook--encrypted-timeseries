@@ -32,6 +32,19 @@ services:
     networks:
       - encryption-app-network
 
+  dashboard-frontend:
+    image: dashboard-frontend:latest
+    container_name: dashboard-frontend
+    build:
+      context: ./dashboard-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - dashboard-backend
+    networks:
+      - encryption-app-network
+
   redis:
     image: redis:latest
     container_name: redis-service
