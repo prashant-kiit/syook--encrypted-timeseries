@@ -38,3 +38,35 @@ jobs:
         run: |
           docker push \
           ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service }}:${{ github.event.pull_request.merge_commit_sha }}
+
+  update-gitops:
+      needs: build
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Checkout GitOps Repo
+          uses: actions/checkout@v4
+          with:
+            repository: prashant-kiit/syool--encryption-application-gitops
+            token: ${{ secrets.GITOPS_PAT }}
+            path: gitops
+
+        - name: Update image tags in docker-compose.prod.yml
+          run: |
+            cd gitops
+            SHA=${{ github.event.pull_request.merge_commit_sha }}
+            DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+
+            sed -i "s|image: ${DOCKERHUB_USERNAME}/emitter-service:.*|image: ${DOCKERHUB_USERNAME}/emitter-service:${SHA}|g" docker-compose.prod.yml
+            sed -i "s|image: ${DOCKERHUB_USERNAME}/listener-service:.*|image: ${DOCKERHUB_USERNAME}/listener-service:${SHA}|g" docker-compose.prod.yml
+            sed -i "s|image: ${DOCKERHUB_USERNAME}/dashboard-backend:.*|image: ${DOCKERHUB_USERNAME}/dashboard-backend:${SHA}|g" docker-compose.prod.yml
+            sed -i "s|image: ${DOCKERHUB_USERNAME}/dashboard-frontend:.*|image: ${DOCKERHUB_USERNAME}/dashboard-frontend:${SHA}|g" docker-compose.prod.yml
+
+        - name: Commit and Push updated tags
+          run: |
+            cd gitops
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add docker-compose.prod.yml
+            git diff --staged --quiet || git commit -m "ci: update image tags to ${{ github.event.pull_request.merge_commit_sha }}"
+            git push
